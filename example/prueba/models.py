@@ -54,48 +54,48 @@ class Prueba(models.Model):
         }
     '''
     # BigIntegerField
-    big_integer_field = models.BigIntegerField()
+    big_integer_field = models.BigIntegerField(null=True, blank=True)
     # BooleanField
-    boolean_field = models.BooleanField()
+    boolean_field = models.BooleanField(null=True, blank=True)
     # CharField
     char_field = models.CharField(max_length=100)
     # DateField
-    date_field = models.DateField()
+    date_field = models.DateField(null=True, blank=True)
     # DateTimeField
-    date_time_field = models.DateTimeField()
+    date_time_field = models.DateTimeField(null=True, blank=True)
     # DecimalField
-    decimal_field = models.DecimalField(max_digits=10, decimal_places=2)
+    decimal_field = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     # DurationField
-    duration_field = models.DurationField()
+    duration_field = models.DurationField(null=True, blank=True)
     # EmailField
-    email_field = models.EmailField()
+    email_field = models.EmailField(null=True, blank=True)
     # FileField
-    file_field = models.FileField()
+    file_field = models.FileField(null=True, blank=True)
     # FilePathField
-    file_path_field = models.FilePathField()
+    file_path_field = models.FilePathField(null=True, blank=True)
     # FloatField
-    float_field = models.FloatField()
+    float_field = models.FloatField(null=True, blank=True)
     # ImageField
-    image_field = models.ImageField()
+    image_field = models.ImageField(null=True, blank=True)
     # IntegerField
-    integer_field = models.IntegerField()
+    integer_field = models.IntegerField(null=True, blank=True)
     # GenericIPAddressField
-    generic_ip_address_field = models.GenericIPAddressField()
+    generic_ip_address_field = models.GenericIPAddressField(null=True, blank=True)
     # PositiveIntegerField
-    positive_integer_field = models.PositiveIntegerField()
+    positive_integer_field = models.PositiveIntegerField(null=True, blank=True)
     # PositiveSmallIntegerField
-    positive_small_integer_field = models.PositiveSmallIntegerField()
+    positive_small_integer_field = models.PositiveSmallIntegerField(null=True, blank=True)
     # SlugField
-    slug_field = models.SlugField()
+    slug_field = models.SlugField(null=True, blank=True)
     # SmallIntegerField
-    small_integer_field = models.SmallIntegerField()
+    small_integer_field = models.SmallIntegerField(null=True, blank=True)
     # TextField
-    text_field = models.TextField()
+    text_field = models.TextField(null=True, blank=True)
     # TimeField
-    time_field = models.TimeField()
+    time_field = models.TimeField(null=True, blank=True)
     # URLField
-    url_field = models.URLField()
+    url_field = models.URLField(null=True, blank=True)
     # UUIDField
-    uuid_field = models.UUIDField()
+    uuid_field = models.UUIDField(null=True, blank=True)
     # ForeignKey
     foreign_field = models.ForeignKey(RelatedModel, on_delete=models.CASCADE, related_name='pruebas')
