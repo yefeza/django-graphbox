@@ -137,8 +137,8 @@ def build_mutate_for_create(self):
                             value=make_password(value)
                             setattr(instance, key, value)
                         else:
-                            if getattr(model, key).field.choices!=None and len(getattr(model, key).field.choices)>0:
-                                choices=getattr(model, key).field.choices
+                            if model._meta.get_field(key).choices!=None and len(model._meta.get_field(key).choices)>0:
+                                choices=model._meta.get_field(key).choices
                                 valid_options=[c[0] for c in choices]
                                 if value not in valid_options:
                                     raise Exception(f'{value} no es una opción válida para {key}')
@@ -214,8 +214,8 @@ def build_mutate_for_update(self):
                                         value=make_password(value)
                                         setattr(instance, key, value)
                                     else:
-                                        if getattr(model, key).field.choices!=None and len(getattr(model, key).field.choices)>0:
-                                            choices=getattr(model, key).field.choices
+                                        if model._meta.get_field(key).choices!=None and len(model._meta.get_field(key).choices)>0:
+                                            choices=model._meta.get_field(key).choices
                                             valid_options=[c[0] for c in choices]
                                             if value not in valid_options:
                                                 raise Exception(f'{value} no es una opción válida para {key}')
