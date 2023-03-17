@@ -23,11 +23,11 @@ settings.__setattr__('FACEBOOK_APP_ID', 'test')
 # -- Project information -----------------------------------------------------
 
 project = 'Django GraphBox'
-copyright = '2022, Yeison M. Fernandez Zarate'
+copyright = '2023, Yeison M. Fernandez Zarate'
 author = 'Yeison M. Fernandez Zarate'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = '1.2.0'
 
 
 # -- General configuration ---------------------------------------------------

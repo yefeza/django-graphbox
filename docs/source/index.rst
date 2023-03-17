@@ -1,4 +1,4 @@
-Django GraphBox 1.0.0
+Django GraphBox 1.2.0
 ========================
 
 .. toctree::
