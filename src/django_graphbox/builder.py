@@ -12,8 +12,6 @@ from .helpers.sessions import *
 
 class SchemaBuilder:
     """ Class provides the functionality to build a GraphQL schema with basic operations: field_by_id, list_field, create_field, update_field and delete_field."""
-    _models_config = {}
-    _models_by_op_name = {}
 
     def __init__(self, session_manager=None):
         """Initialize the schema builder.
@@ -21,6 +19,8 @@ class SchemaBuilder:
         Args:
             session_manager (SessionManager): Session manager to use.
         """
+        self._models_config = {}
+        self._models_by_op_name = {}
         self._session_manager = session_manager
 
     def add_model(self, model, exclude_fields=(), pagination_length=0, pagination_style='infinite', external_filters=[], internal_filters=[], filters_opeator=Q.AND, access_group=None, access_by_operation={}, validators_by_operation={}, internal_field_resolvers={}, exclude_fields_by_operation={}, save_as_password=[], callbacks_by_operation={}, **kwargs):
