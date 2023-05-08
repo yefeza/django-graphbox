@@ -23,7 +23,7 @@ class SchemaBuilder:
         self._models_by_op_name = {}
         self._session_manager = session_manager
 
-    def add_model(self, model, exclude_fields=(), pagination_length=0, pagination_style='infinite', external_filters=[], internal_filters=[], filters_opeator=Q.AND, access_group=None, access_by_operation={}, validators_by_operation={}, internal_field_resolvers={}, exclude_fields_by_operation={}, save_as_password=[], callbacks_by_operation={}, **kwargs):
+    def add_model(self, model, exclude_fields=(), pagination_length=0, pagination_style='infinite', external_filters=[], internal_filters=[], filters_opeator=Q.AND, access_group=None, access_by_operation={}, validators_by_operation={}, internal_field_resolvers={}, exclude_fields_by_operation={}, save_as_password=[], callbacks_by_operation={}, custom_attrs_for_type=[], ordering_field='id', **kwargs):
         """Add model for build operations.
 
         Args:
@@ -40,12 +40,17 @@ class SchemaBuilder:
             internal_field_resolvers (dict): Dictionary with the internal field value resolvers on create_field and update_field operations
             save_as_password (list): List of fields to save as password with make_password function.
             callbacks_by_operation (dict): Dictionary with the callbacks list to use for the access. {'operation': [callable(info, model_instance, **kwargs)], ...}
+            custom_attrs_for_type (list): List of custom attributes to add to the model type. [{'name': 'attr_name', 'value': 'attr_value'}, ...]
+            ordering_field (str): Field to use for ordering the list_field operation.
         """
         #get the model name
         model_name = model.__name__
         #crreate the model type
         model_metaclass = type(f"Meta", (), {'model': model, 'exclude_fields': exclude_fields})
         model_type = type(f"{model_name}Type", (DjangoObjectType,), {'Meta': model_metaclass})
+        #add custom attributes to the model type
+        for attr in custom_attrs_for_type:
+            setattr(model_type, attr['name'], attr['value'])
         #create paginated type
         if pagination_length > 0 and pagination_style == 'paginated':
             paginated_type = type(f"{model_name}PageType", (graphene.ObjectType,), {'items': graphene.List(model_type), 'page': graphene.Int(), 'has_next_page': graphene.Boolean(), 'has_previous_page': graphene.Boolean(), 'total_pages': graphene.Int(), 'total_items': graphene.Int()})
@@ -68,7 +73,8 @@ class SchemaBuilder:
             'internal_field_resolvers': internal_field_resolvers,
             'exclude_fields_by_operation': exclude_fields_by_operation,
             'save_as_password': save_as_password,
-            'callbacks_by_operation': callbacks_by_operation
+            'callbacks_by_operation': callbacks_by_operation,
+            'ordering_field': ordering_field
         }
         self._models_config[model_name]=config
 

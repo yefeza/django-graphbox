@@ -7,7 +7,7 @@ import graphene_file_upload.scalars
 MODEL_FIELD_TO_GRAPHENE_TYPE = {
     'AutoField': graphene.ID,
     'BigAutoField': graphene.ID,
-    'BigIntegerField': graphene.Int,
+    'BigIntegerField': graphene.BigInt if hasattr(graphene, 'BigInt') else graphene.Int,
     'BooleanField': graphene.Boolean,
     'CharField': graphene.String,
     'DateField': graphene.Date,

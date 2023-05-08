@@ -43,6 +43,7 @@ def build_field_list_resolver(self):
         external_filters=config.get('external_filters')
         internal_filters=config.get('internal_filters')
         filters_operator=config.get('filters_operator')
+        ordering_field=config.get('ordering_field')
         query_object=None
         for filter_config in external_filters:
             param_value=kwargs.get(filter_config.get('param_name'))
@@ -90,7 +91,7 @@ def build_field_list_resolver(self):
                 pagina=kwargs.get('page')
                 inicio=(pagina*pagination_length)-pagination_length
                 fin=inicio+pagination_length
-                items=model.objects.filter(query_object)[inicio:fin]
+                items=model.objects.filter(query_object).order_by(ordering_field)[inicio:fin]
                 callbacks=config.get('callbacks_by_operation').get('list_field')
                 if callbacks is not None:
                     for callback in callbacks:
