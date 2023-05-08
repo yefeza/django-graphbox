@@ -47,10 +47,10 @@ class SchemaBuilder:
         model_name = model.__name__
         #crreate the model type
         model_metaclass = type(f"Meta", (), {'model': model, 'exclude_fields': exclude_fields})
-        model_type = type(f"{model_name}Type", (DjangoObjectType,), {'Meta': model_metaclass})
-        #add custom attributes to the model type
+        type_attrs={'Meta': model_metaclass}
         for attr in custom_attrs_for_type:
-            setattr(model_type, attr['name'], attr['value'])
+            type_attrs[attr['name']]=attr['value']
+        model_type = type(f"{model_name}Type", (DjangoObjectType,), type_attrs)
         #create paginated type
         if pagination_length > 0 and pagination_style == 'paginated':
             paginated_type = type(f"{model_name}PageType", (graphene.ObjectType,), {'items': graphene.List(model_type), 'page': graphene.Int(), 'has_next_page': graphene.Boolean(), 'has_previous_page': graphene.Boolean(), 'total_pages': graphene.Int(), 'total_items': graphene.Int()})

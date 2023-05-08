@@ -335,3 +335,4 @@ Release Notes
 
     * Version 1.0.0 to 1.1.5 was a package developed for a specific project, and the code was not published on GitHub. The code was refactored and published on GitHub on version 1.2.0.
     * Version 1.2.3 add support to set custom attributes on the model Type and set custom ordering field for the queries.
+    * Version 1.2.4 Fix custom attributes on the model Type.
