@@ -64,7 +64,7 @@ def update_arguments_class(model, fields_to_ignore=[], fields_as_password=[]):
     for field in model._meta.fields:
         if field.name not in exclude_fields:
             field_type=field.get_internal_type()
-            if field_type!='ManyToManyField':
+            if field_type in MODEL_FIELD_TO_GRAPHENE_TYPE.keys():
                 argument_type=MODEL_FIELD_TO_GRAPHENE_TYPE[field_type]
                 required=True
                 if field.null or field_type in ['ImageField', 'FileField'] or field.name in fields_as_password:
@@ -117,7 +117,7 @@ def build_mutate_for_create(self):
                     if callable(value):
                         value=value(info, instance, **kwargs)
                     if value!=None:
-                        if field_type=='ForeignKey':
+                        if field_type=='ForeignKey' or field_type=='OneToOneField':
                             foreign_model=instance._meta.get_field(key).related_model
                             value=foreign_model.objects.get(id=value)
                             setattr(instance, key, value)
