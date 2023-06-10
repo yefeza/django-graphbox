@@ -29,7 +29,9 @@ MODEL_FIELD_TO_GRAPHENE_TYPE = {
     'TimeField': graphene.Time,
     'URLField': graphene.String,
     'UUIDField': graphene.String,
-    'ForeignKey': graphene.ID
+    'ForeignKey': graphene.ID,
+    'JSONField': graphene.String,
+    'OneToOneField': graphene.ID,
 }
 
 NO_ERROR=0
