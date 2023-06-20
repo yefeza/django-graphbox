@@ -24,7 +24,7 @@ When the SessionManager is used, the operations related to authentication are:
 
 This package don't limit to use this basic operations. Custom operations can be defined on classic style of Graphene and Graphene-Django and finally can be merged on the main schema as described on the Quickstart section of this documentation at 4. Create a main schema in a new file called schema.py on my_project folder. This file can be used to merge all queries and mutations from all apps builded with django_graphbox or just add your own queries and mutations.
 
-See the full documentation at <https://90horasporsemana.com/graphbox/>
+See the API REFERENCE at <https://90horasporsemana.com/graphbox/>
 
 # Installation
 
@@ -447,3 +447,6 @@ Some of the extra features are:
 # Release Notes
 
 > -   Version 1.0.0 to 1.1.5 was a package developed for a specific project, and the code was not published on GitHub. The code was refactored and published on GitHub on version 1.2.0.
+> -   Version 1.2.3 add support to set custom attributes on the model Type and set custom ordering field for the queries.
+> -   Version 1.2.4 Fix custom attributes on the model Type.
+> -   Version 1.2.5 Add support to select the operations to build for the model. You can select between field_by_id, list_field, create_field, update_field and delete_field operations. By default all operations are selected.

@@ -23,7 +23,7 @@ class SchemaBuilder:
         self._models_by_op_name = {}
         self._session_manager = session_manager
 
-    def add_model(self, model, exclude_fields=(), pagination_length=0, pagination_style='infinite', external_filters=[], internal_filters=[], filters_opeator=Q.AND, access_group=None, access_by_operation={}, validators_by_operation={}, internal_field_resolvers={}, exclude_fields_by_operation={}, save_as_password=[], callbacks_by_operation={}, custom_attrs_for_type=[], ordering_field='id', **kwargs):
+    def add_model(self, model, exclude_fields=(), pagination_length=0, pagination_style='infinite', external_filters=[], internal_filters=[], filters_opeator=Q.AND, access_group=None, access_by_operation={}, validators_by_operation={}, internal_field_resolvers={}, exclude_fields_by_operation={}, save_as_password=[], callbacks_by_operation={}, custom_attrs_for_type=[], ordering_field='id', operations_to_build=['field_by_id', 'list_field', 'create_field', 'update_field', 'delete_field'], **kwargs):
         """Add model for build operations.
 
         Args:
@@ -42,6 +42,7 @@ class SchemaBuilder:
             callbacks_by_operation (dict): Dictionary with the callbacks list to use for the access. {'operation': [callable(info, model_instance, **kwargs)], ...}
             custom_attrs_for_type (list): List of custom attributes to add to the model type. [{'name': 'attr_name', 'value': 'attr_value'}, ...]
             ordering_field (str): Field to use for ordering the list_field operation.
+            operations_to_build (list): List of operations to build. Possible values are 'field_by_id', 'list_field', 'create_field', 'update_field' and 'delete_field'.
         """
         #get the model name
         model_name = model.__name__
@@ -74,7 +75,8 @@ class SchemaBuilder:
             'exclude_fields_by_operation': exclude_fields_by_operation,
             'save_as_password': save_as_password,
             'callbacks_by_operation': callbacks_by_operation,
-            'ordering_field': ordering_field
+            'ordering_field': ordering_field,
+            'operations_to_build': operations_to_build
         }
         self._models_config[model_name]=config
 
@@ -89,16 +91,18 @@ class SchemaBuilder:
             model_config=self._models_config[key]
             object_name=model_config['name'].lower()
             # build field_by_id query
-            field_by_id_resolver_function=build_field_by_id_resolver(self)
-            self._models_by_op_name[object_name]=model_config
-            setattr(query_class, object_name, graphene.Field(model_config['type'], id=graphene.ID(required=True)))
-            setattr(query_class, f'resolve_{object_name}', field_by_id_resolver_function)
+            if 'field_by_id' in model_config['operations_to_build']:
+                field_by_id_resolver_function=build_field_by_id_resolver(self)
+                self._models_by_op_name[object_name]=model_config
+                setattr(query_class, object_name, graphene.Field(model_config['type'], id=graphene.ID(required=True)))
+                setattr(query_class, f'resolve_{object_name}', field_by_id_resolver_function)
             # build list_field query
-            field_list_resolver_function=build_field_list_resolver(self)
-            self._models_by_op_name['all' + object_name]=model_config
-            return_object=get_return_object(model_config)
-            setattr(query_class, f"all_{object_name}", return_object)
-            setattr(query_class, f'resolve_all_{object_name}',field_list_resolver_function)
+            if 'list_field' in model_config['operations_to_build']:
+                field_list_resolver_function=build_field_list_resolver(self)
+                self._models_by_op_name['all' + object_name]=model_config
+                return_object=get_return_object(model_config)
+                setattr(query_class, f"all_{object_name}", return_object)
+                setattr(query_class, f'resolve_all_{object_name}',field_list_resolver_function)
         return query_class
     
     def build_schema_mutation(self):
@@ -111,30 +115,33 @@ class SchemaBuilder:
         for key in self._models_config.keys():
             model_config=self._models_config[key]
             # create the create mutation
-            mutate_create_function=build_mutate_for_create(self)
-            # get fields to ignore on arguments
-            fields_to_ignore=get_fields_to_ignore(model_config, 'create_field')
-            # build argumants class
-            arguments_create=create_arguments_class(model_config['model'], fields_to_ignore)
-            create_mutation=type("Create"+model_config['name'], (graphene.Mutation,), {"estado":graphene.Boolean(),model_config['name'].lower(): graphene.Field(model_config['type']), "error":graphene.Field(ErrorMsgType), 'Arguments': arguments_create, 'mutate': mutate_create_function})
-            setattr(mutation_class, f"create_{model_config['name'].lower()}", create_mutation.Field())
-            self._models_by_op_name['create' + model_config['name'].lower()]=model_config
+            if 'create_field' in model_config['operations_to_build']:
+                mutate_create_function=build_mutate_for_create(self)
+                # get fields to ignore on arguments
+                fields_to_ignore=get_fields_to_ignore(model_config, 'create_field')
+                # build argumants class
+                arguments_create=create_arguments_class(model_config['model'], fields_to_ignore)
+                create_mutation=type("Create"+model_config['name'], (graphene.Mutation,), {"estado":graphene.Boolean(),model_config['name'].lower(): graphene.Field(model_config['type']), "error":graphene.Field(ErrorMsgType), 'Arguments': arguments_create, 'mutate': mutate_create_function})
+                setattr(mutation_class, f"create_{model_config['name'].lower()}", create_mutation.Field())
+                self._models_by_op_name['create' + model_config['name'].lower()]=model_config
             # create the update mutation
-            mutate_update_function=build_mutate_for_update(self)
-            # get fields to omit
-            fields_to_ignore=get_fields_to_ignore(model_config, 'update_field')
-            # build argumants class
-            arguments_update=update_arguments_class(model_config['model'], fields_to_ignore, model_config.get('save_as_password'))
-            update_mutation=type("Update"+model_config['name'], (graphene.Mutation,), {"estado":graphene.Boolean(),model_config['name'].lower(): graphene.Field(model_config['type']), "error":graphene.Field(ErrorMsgType), 'Arguments': arguments_update, 'mutate': mutate_update_function})
-            setattr(mutation_class, f"update_{model_config['name'].lower()}", update_mutation.Field())
-            self._models_by_op_name['update' + model_config['name'].lower()]=model_config
+            if 'update_field' in model_config['operations_to_build']:
+                mutate_update_function=build_mutate_for_update(self)
+                # get fields to omit
+                fields_to_ignore=get_fields_to_ignore(model_config, 'update_field')
+                # build argumants class
+                arguments_update=update_arguments_class(model_config['model'], fields_to_ignore, model_config.get('save_as_password'))
+                update_mutation=type("Update"+model_config['name'], (graphene.Mutation,), {"estado":graphene.Boolean(),model_config['name'].lower(): graphene.Field(model_config['type']), "error":graphene.Field(ErrorMsgType), 'Arguments': arguments_update, 'mutate': mutate_update_function})
+                setattr(mutation_class, f"update_{model_config['name'].lower()}", update_mutation.Field())
+                self._models_by_op_name['update' + model_config['name'].lower()]=model_config
             # create the delete mutation
-            mutate_delete_function=build_mutate_for_delete(self)
-            # build argumants class
-            delete_arguments=delete_arguments_class()
-            delete_mutation=type("Delete"+model_config['name'], (graphene.Mutation,), {"estado":graphene.Boolean(), "error":graphene.Field(ErrorMsgType), 'Arguments': delete_arguments, 'mutate': mutate_delete_function})
-            setattr(mutation_class, f"delete_{model_config['name'].lower()}", delete_mutation.Field())
-            self._models_by_op_name['delete' + model_config['name'].lower()]=model_config
+            if 'delete_field' in model_config['operations_to_build']:
+                mutate_delete_function=build_mutate_for_delete(self)
+                # build argumants class
+                delete_arguments=delete_arguments_class()
+                delete_mutation=type("Delete"+model_config['name'], (graphene.Mutation,), {"estado":graphene.Boolean(), "error":graphene.Field(ErrorMsgType), 'Arguments': delete_arguments, 'mutate': mutate_delete_function})
+                setattr(mutation_class, f"delete_{model_config['name'].lower()}", delete_mutation.Field())
+                self._models_by_op_name['delete' + model_config['name'].lower()]=model_config
         return mutation_class
 
     def build_session_schema(self):
