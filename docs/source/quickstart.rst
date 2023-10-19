@@ -339,3 +339,4 @@ Release Notes
     * Version 1.2.5 and 1.2.6 Add support to select the operations to build for the model. You can select between field_by_id, list_field, create_field, update_field and delete_field operations. By default all operations are selected.
     * Version 1.2.7 Add support for Google Login using OAuth 2.0 with OpenID Connect.
     * Version 1.2.8 Optimize optional dependencies.
+    * Version 1.2.9 Fix bug on Django auditor logs integration.

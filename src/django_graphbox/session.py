@@ -203,8 +203,13 @@ class Manager:
                                     from django_auditor_logs.metadata import MetadataManager
                                     user_metadata={}
                                     for field in user_instance._meta.get_fields():
-                                        if not field.is_relation:
-                                            user_metadata[field.name]=getattr(user_instance, field.name)
+                                        try:
+                                            if not field.is_relation:
+                                                user_metadata[field.name]=str(getattr(user_instance, field.name))
+                                            else:
+                                                user_metadata[field.name+"_id"]=str(getattr(user_instance, field.name).id)
+                                        except:
+                                            pass
                                     MetadataManager.set_user_metadata(user_metadata)
                                 except Exception as e:
                                     print(e)
