@@ -14,8 +14,8 @@ from django.core.files.images import ImageFile
 from django.contrib.auth.hashers import make_password
 # pillow import
 from PIL import Image
-# json 
-import json
+# logging
+import logging
 
 # Arguments class Builders
 
@@ -46,6 +46,10 @@ def create_arguments_class(model, fields_to_ignore=[]):
                 if field.null:
                     required=False
                 setattr(Arguments, field.name.lower(), argument_type(required=required))
+            else:
+                if field_type in ['FileField', 'ImageField']:
+                    
+                    logging.warning(f'Please install graphene-file-upload to support {field_type} fields. {field.name} on {model.__name__} will be ignored')
     return Arguments
 
 def update_arguments_class(model, fields_to_ignore=[], fields_as_password=[]):
