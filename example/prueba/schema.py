@@ -1,7 +1,6 @@
 # django_graphbox imports.
 from django_graphbox.builder import SchemaBuilder
 from django_graphbox.session import Manager as SessionManager
-import graphene
 # models imports.
 from .models import *
 # settings imports.
@@ -35,11 +34,10 @@ builder.add_model(
 )
 builder.add_model(
     RelatedModel,
-    access_group=settings.GROUP_RESPONSABLE,
+    access_group=settings.GROUP_AUXILIAR,
 )
 builder.add_model(
     Prueba,
-    access_group=settings.GROUP_AUXILIAR,
 )
 # build session schema
 session_query, session_mutation = builder.build_session_schema()

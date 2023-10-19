@@ -1,5 +1,5 @@
 About Django GraphBox
------------------------------------------------
+---------------------------------------------------------------------------------------
 Django GraphBox is a package for easy building GraphQL APIs with Django. This package is based on Graphene and Graphene-Django. 
 
 It provides a SchemaBuilder that can be used to build a GraphQL schema from Django models. It also provides a SessionManager that can be used to manage access to the GraphQL API.
@@ -22,7 +22,7 @@ When the SessionManager is used, the operations related to authentication are:
 -   social_login (Mutation)
 -   actual_user (Query)
 
-This package don't limit to use this basic operations. Custom operations can be defined on classic style of Graphene and Graphene-Django and finally can be merged on the main schema as described on the Quickstart section of this documentation at 4. Create a main schema in a new file called schema.py on my_project folder. This file can be used to merge all queries and mutations from all apps builded with django_graphbox or just add your own queries and mutations.
+This package don't limit to use this basic operations. Custom operations can be defined on classic style of Graphene and Graphene-Django and finally can be merged on the main schema as described on the Quickstart section of this documentation at 4. Create a main schema in a new file called schema.py on myproject folder. This file can be used to merge all queries and mutations from all apps builded with django_graphbox or just add your own queries and mutations.
 
 See the full documentation at https://90horasporsemana.com/graphbox/
 
@@ -41,11 +41,11 @@ Use this guide to get started with the GraphBox.
 
     .. code-block:: bash
 
-        $ django-admin startproject my_project
-        $ cd my_project
-        $ python manage.py startapp my_app
+        $ django-admin startproject myproject
+        $ cd myproject
+        $ python manage.py startapp myapp
 
-2. Define your Django models in the `my_app` app.
+2. Define your Django models in the `myapp` app.
 
     .. code-block:: python3
 
@@ -55,27 +55,27 @@ Use this guide to get started with the GraphBox.
             ...
     .. code-block:: bash
 
-        $ python manage.py makemigrations my_app
+        $ python manage.py makemigrations myapp
         $ python manage.py migrate
 
-3. Configure and Build your GraphQL schema with django_graphbox.builder.SchemaBuilder on a new file called `schema.py` on the `my_app` app.
+3. Configure and Build your GraphQL schema with django_graphbox.builder.SchemaBuilder on a new file called `schema.py` on the `myapp` app.
     
         .. code-block:: python3
     
             from django_graphbox.builder import SchemaBuilder
-            from my_app.models import MyModel
+            from myapp.models import MyModel
 
             builder = SchemaBuilder()
             builder.add_model(MyModel)
             query_class = builder.build_schema_query()
             mutation_class = builder.build_schema_mutation()
 
-4. Create a main schema in a new file called `schema.py` on `my_project` folder. This file can be used to merge all queries and mutations from all apps builded with django_graphbox or just add your own queries and mutations.
+4. Create a main schema in a new file called `schema.py` on `myproject` folder. This file can be used to merge all queries and mutations from all apps builded with django_graphbox or just add your own queries and mutations.
 
     .. code-block:: python3
             
             import graphene
-            from my_app.schema import query_class, mutation_class
+            from myapp.schema import query_class, mutation_class
 
             class Query(query_class, graphene.ObjectType):
                 pass
@@ -150,22 +150,22 @@ Follow the steps below to create a new user and Manage the access to the GraphQL
 
     This permissions are related with the operations of the user model used on SessionManager. A user with the permission ROLE_LEVEL_2 only can create, update and delete user instances with the permission ROLE_LEVEL_2 and ROLE_LEVEL_3.
     
-3. Create a new instance of the SessionManager on your `schema.py` file on the `my_app` app and configure the user model.
+3. Create a new instance of the SessionManager on your `schema.py` file on the `myapp` app and configure the user model.
 
     .. code-block:: python3
 
         from django_graphbox.session import Manager as SessionManager
-        from my_app.models import User
+        from myapp.models import User
         from django.conf import settings
 
         session_manager = SessionManager(User, rol_field_name='role', login_id_field_name='custom_uname', password_field_name='custom_pwd', active_field_name='custom_active', groups=settings.ACCESS_GROUPS, modify_permissions=settings.MODIFY_PERMISSIONS)
 
-4. Configure and Build your GraphQL schema with django_graphbox.builder.SchemaBuilder on the file called `schema.py` on the `my_app` app.
+4. Configure and Build your GraphQL schema with django_graphbox.builder.SchemaBuilder on the file called `schema.py` on the `myapp` app.
     
         .. code-block:: python3
     
             from django_graphbox.builder import SchemaBuilder
-            from my_app.models import MyModel
+            from myapp.models import MyModel
 
             # Add the SessionManager to the SchemaBuilder
             builder = SchemaBuilder(session_manager=session_manager)
@@ -183,12 +183,12 @@ Follow the steps below to create a new user and Manage the access to the GraphQL
             # Build your session operations
             session_query, session_mutation = builder.build_session_schema()
 
-5. Create a main schema in a new file called `schema.py` on `my_project` folder. This file can be used to merge all queries and mutations from all apps builded with django_graphbox or just add your own queries and mutations.
+5. Create a main schema in a new file called `schema.py` on `myproject` folder. This file can be used to merge all queries and mutations from all apps builded with django_graphbox or just add your own queries and mutations.
 
     .. code-block:: python3
             
             import graphene
-            from my_app.schema import query_class, mutation_class, session_query, session_mutation
+            from myapp.schema import query_class, mutation_class, session_query, session_mutation
 
             class Query(query_class, session_query, graphene.ObjectType):
                 pass
@@ -336,4 +336,6 @@ Release Notes
     * Version 1.0.0 to 1.1.5 was a package developed for a specific project, and the code was not published on GitHub. The code was refactored and published on GitHub on version 1.2.0.
     * Version 1.2.3 add support to set custom attributes on the model Type and set custom ordering field for the queries.
     * Version 1.2.4 Fix custom attributes on the model Type.
-    * Version 1.2.5 Add support to select the operations to build for the model. You can select between field_by_id, list_field, create_field, update_field and delete_field operations. By default all operations are selected.
+    * Version 1.2.5 and 1.2.6 Add support to select the operations to build for the model. You can select between field_by_id, list_field, create_field, update_field and delete_field operations. By default all operations are selected.
+    * Version 1.2.7 Add support for Google Login using OAuth 2.0 with OpenID Connect.
+    * Version 1.2.8 Optimize optional dependencies.

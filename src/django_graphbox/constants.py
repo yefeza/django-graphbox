@@ -2,7 +2,12 @@
 Global constants for the django_graphbox schema.
 """
 import graphene
-import graphene_file_upload.scalars
+GRAPHBOX_SUPPORT_FILE_UPLOAD = False
+try:
+    import graphene_file_upload.scalars
+    GRAPHBOX_SUPPORT_FILE_UPLOAD = True
+except:
+    pass
 
 MODEL_FIELD_TO_GRAPHENE_TYPE = {
     'AutoField': graphene.ID,
@@ -15,10 +20,8 @@ MODEL_FIELD_TO_GRAPHENE_TYPE = {
     'DecimalField': graphene.Decimal,
     'DurationField': graphene.String,
     'EmailField': graphene.String,
-    'FileField': graphene_file_upload.scalars.Upload,
     'FilePathField': graphene.String,
     'FloatField': graphene.Float,
-    'ImageField': graphene_file_upload.scalars.Upload,
     'IntegerField': graphene.Int,
     'GenericIPAddressField': graphene.String,
     'PositiveIntegerField': graphene.Int,
@@ -33,6 +36,9 @@ MODEL_FIELD_TO_GRAPHENE_TYPE = {
     'JSONField': graphene.String,
     'OneToOneField': graphene.ID,
 }
+if GRAPHBOX_SUPPORT_FILE_UPLOAD:
+    MODEL_FIELD_TO_GRAPHENE_TYPE['FileField']=graphene_file_upload.scalars.Upload
+    MODEL_FIELD_TO_GRAPHENE_TYPE['ImageField']=graphene_file_upload.scalars.Upload
 
 NO_ERROR=0
 UNKNOWN_ERROR=1

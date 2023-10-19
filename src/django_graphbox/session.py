@@ -18,6 +18,8 @@ from .constants import *
 # google imports
 from google.oauth2 import id_token
 from google.auth.transport import requests as grq
+import google.oauth2.credentials
+from google.auth.transport.requests import AuthorizedSession
 # facebook imports
 import facebook
 # files manage
@@ -25,7 +27,10 @@ from django.core.files.images import ImageFile
 from django.core.files.temp import tempfile
 import requests
 from .hasher import HashManager
-from moodle import Moodle
+try:
+    from moodle import Moodle
+except:
+    pass
 
 class GroupManager:
     """ Manager for allow access to users by groups. """
@@ -71,11 +76,21 @@ class GoogleSession:
     @classmethod
     def validate (cls, token):
         try:
-            info=id_token.verify_oauth2_token(token, grq.Request(), cls.client_id)
+            credentials = google.oauth2.credentials.Credentials(token)
+            authed_session = AuthorizedSession(credentials)
+            open_id_configuration=requests.get("https://accounts.google.com/.well-known/openid-configuration").json()
+            userinfo_endpoint=open_id_configuration['userinfo_endpoint']
+            # Make an authenticated API request with OPENID scope.
+            response = authed_session.get(userinfo_endpoint,params={'alt': 'json'})
+            info=response.json()
             return True, info
         except:
-            data=[]
-            return False,data
+            try:
+                info=id_token.verify_oauth2_token(token, grq.Request(), cls.client_id)
+                return True, info
+            except:
+                data=[]
+                return False,data
 
 class FacebookSession:
     app_id=getattr(settings, 'FACEBOOK_APP_ID', None)
