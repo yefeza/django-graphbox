@@ -80,7 +80,10 @@ def build_field_list_resolver(self):
         if valid:
             model=config.get('model')
             if pagination_length == 0:
-                result=model.objects.filter(query_object)
+                if type(ordering_field) in [list, tuple]:
+                    result=model.objects.filter(query_object).order_by(*ordering_field)
+                else:
+                    result=model.objects.filter(query_object).order_by(ordering_field)
                 callbacks=config.get('callbacks_by_operation').get('list_field')
                 if callbacks is not None:
                     for callback in callbacks:
@@ -91,7 +94,10 @@ def build_field_list_resolver(self):
                 pagina=kwargs.get('page')
                 inicio=(pagina*pagination_length)-pagination_length
                 fin=inicio+pagination_length
-                items=model.objects.filter(query_object).order_by(ordering_field)[inicio:fin]
+                if type(ordering_field) in [list, tuple]:
+                    items=model.objects.filter(query_object).order_by(*ordering_field)[inicio:fin]
+                else:
+                    items=model.objects.filter(query_object).order_by(ordering_field)[inicio:fin]
                 callbacks=config.get('callbacks_by_operation').get('list_field')
                 if callbacks is not None:
                     for callback in callbacks:
