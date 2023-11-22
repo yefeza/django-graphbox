@@ -261,12 +261,12 @@ def build_mutate_for_delete(self):
                     if 'delete_field' in config['validators_by_operation']:
                         valid_operation=evaluate_result(config['validators_by_operation']['delete_field'], info, instance, **kwargs)
                     if valid_operation:
+                        instance.delete()
                         callbacks=config.get('callbacks_by_operation').get('delete_field')
                         if callbacks is not None:
                             for callback in callbacks:
                                 if callable(callback):
                                     callback(info, instance, **kwargs)
-                        instance.delete()
                         return return_object(**{'estado':True, 'error':ErrorManager.get_error_by_code(NO_ERROR)})
                     else:
                         return return_object(**{'estado':False, 'error':ErrorManager.get_error_by_code(INSUFFICIENT_PERMISSIONS)})

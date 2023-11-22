@@ -41,7 +41,7 @@ class SchemaBuilder:
             save_as_password (list): List of fields to save as password with make_password function.
             callbacks_by_operation (dict): Dictionary with the callbacks list to use for the access. {'operation': [callable(info, model_instance, **kwargs)], ...}
             custom_attrs_for_type (list): List of custom attributes to add to the model type. [{'name': 'attr_name', 'value': 'attr_value'}, ...]
-            ordering_field (str): Field to use for ordering the list_field operation.
+            ordering_field (str, tuple or list): Field or fields to use for ordering the list_field operation.
             operations_to_build (list): List of operations to build. Possible values are 'field_by_id', 'list_field', 'create_field', 'update_field' and 'delete_field'.
         """
         #get the model name
