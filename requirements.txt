@@ -1,12 +1,14 @@
 setuptools==62.3.2
 django>=2.2.1,<=4.2.6
 graphene-django>=2.15.0
-# graphene-file-upload>=1.2.2  (Optional for file upload)
 pyjwt>=2.3.0
 urllib3>=1.26.9
-pillow>=8.4.0
+pillow>=8.4.0,<10.0.0
 facebook-sdk>=3.1.0
 google-auth>=1.6.3
-# moodlepy==0.22.2 (Optional for moodle integration)
-# django-auditor-logs==1.0.3 (Optional for automatic audit logs)
-# django-extensions==3.1.3 ( Enable only for development)
+# Optional dependencies
+graphene-file-upload>=1.2.2
+moodlepy==0.22.2
+django-auditor-logs==2.0.0
+django-extensions==3.1.3
+captcha==0.4

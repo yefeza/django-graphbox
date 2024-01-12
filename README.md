@@ -486,3 +486,4 @@ Some of the extra features are:
 > - Version 1.2.8 Optimize optional dependencies.
 > - Version 1.2.9 Fix bug on Django auditor logs integration.
 > - Version 1.2.10 Fix ordering field and callbacks on delete operation.
+> - Version 1.3 Add captcha controls in session operations and persistent tokens
