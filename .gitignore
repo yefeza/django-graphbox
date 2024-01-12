@@ -106,4 +106,4 @@ venv.bak/
 *.db
 
 .vscode/
-example-local/
+example_local/

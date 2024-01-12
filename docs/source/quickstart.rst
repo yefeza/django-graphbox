@@ -340,3 +340,4 @@ Release Notes
     * Version 1.2.7 Add support for Google Login using OAuth 2.0 with OpenID Connect.
     * Version 1.2.8 Optimize optional dependencies.
     * Version 1.2.9 Fix bug on Django auditor logs integration.
+    * Version 1.3 Add captcha controls in session operations and persistent tokens
