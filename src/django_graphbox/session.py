@@ -417,45 +417,61 @@ class Manager:
                             if self.group_manager.validar_acesso(
                                 user_instance, group_name
                             ):
-                                # import django_auditor_logs if exists
-                                if "django_auditor_logs" in settings.INSTALLED_APPS:
-                                    try:
-                                        from django_auditor_logs.metadata import (
-                                            MetadataManager,
-                                        )
+                                if self.active_field_name == None or getattr(
+                                    user_instance, self.active_field_name
+                                ):
+                                    # import django_auditor_logs if exists
+                                    if "django_auditor_logs" in settings.INSTALLED_APPS:
+                                        try:
+                                            from django_auditor_logs.metadata import (
+                                                MetadataManager,
+                                            )
 
-                                        user_metadata = {}
-                                        for field in user_instance._meta.get_fields():
-                                            try:
-                                                if not field.is_relation:
-                                                    if (
-                                                        field.name
-                                                        != self.password_field_name
-                                                    ):
-                                                        user_metadata[field.name] = str(
+                                            user_metadata = {}
+                                            for (
+                                                field
+                                            ) in user_instance._meta.get_fields():
+                                                try:
+                                                    if not field.is_relation:
+                                                        if (
+                                                            field.name
+                                                            != self.password_field_name
+                                                        ):
+                                                            user_metadata[
+                                                                field.name
+                                                            ] = str(
+                                                                getattr(
+                                                                    user_instance,
+                                                                    field.name,
+                                                                )
+                                                            )
+                                                    else:
+                                                        user_metadata[
+                                                            field.name + "_id"
+                                                        ] = str(
                                                             getattr(
                                                                 user_instance,
                                                                 field.name,
-                                                            )
+                                                            ).id
                                                         )
-                                                else:
-                                                    user_metadata[
-                                                        field.name + "_id"
-                                                    ] = str(
-                                                        getattr(
-                                                            user_instance, field.name
-                                                        ).id
-                                                    )
-                                            except:
-                                                pass
-                                        MetadataManager.set_user_metadata(user_metadata)
-                                    except Exception as e:
-                                        print(e)
-                                return (
-                                    True,
-                                    user_instance,
-                                    ErrorManager.get_error_by_code(NO_ERROR),
-                                )
+                                                except:
+                                                    pass
+                                            MetadataManager.set_user_metadata(
+                                                user_metadata
+                                            )
+                                        except Exception as e:
+                                            print(e)
+                                    return (
+                                        True,
+                                        user_instance,
+                                        ErrorManager.get_error_by_code(NO_ERROR),
+                                    )
+                                else:
+                                    return (
+                                        False,
+                                        None,
+                                        ErrorManager.get_error_by_code(ACCESS_DENIED),
+                                    )
                             else:
                                 return (
                                     False,
@@ -636,7 +652,9 @@ class Manager:
             if self.active_field_name == None or getattr(
                 user_instance, self.active_field_name
             ):
-                if check_password(
+                if getattr(
+                    user_instance, self.password_field_name
+                ) != None and check_password(
                     password, getattr(user_instance, self.password_field_name)
                 ):
                     return True, user_instance
