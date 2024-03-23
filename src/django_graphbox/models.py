@@ -29,4 +29,4 @@ class LoginCaptcha(models.Model):
     active = models.BooleanField(default=True)
     image_generated = models.BooleanField(default=False)
     session_key = models.CharField(max_length=255, null=True)
-    user_id = models.IntegerField()
+    user_id = models.IntegerField(null=True)
