@@ -48,8 +48,6 @@ myproject folder. This file can be used to merge all queries and mutations from
 all apps builded with django_graphbox or just add your own queries and
 mutations.
 
-See the API REFERENCE at <https://90horasporsemana.com/graphbox/>
-
 # Installation
 
 > ```bash
@@ -68,7 +66,17 @@ Use this guide to get started with the GraphBox.
     > $ python manage.py startapp myapp
     > ```
 
-2.  Define your Django models in the myapp app.
+2.  Add django_graphbox to the INSTALLED_APPS on settings.py file.
+
+    > ```python3
+    > INSTALLED_APPS = [
+    >     ...
+    >     'django_graphbox',
+    >     ...
+    > ]
+    > ```
+
+3.  Define your Django models in the myapp app.
 
     > ```python3
     > from django.db import models
@@ -82,7 +90,7 @@ Use this guide to get started with the GraphBox.
     > $ python manage.py migrate
     > ```
 
-3.  Configure and Build your GraphQL schema with
+4.  Configure and Build your GraphQL schema with
     django_graphbox.builder.SchemaBuilder on a new file called schema.py on the
     myapp app.
 
@@ -96,7 +104,7 @@ Use this guide to get started with the GraphBox.
     > mutation_class = builder.build_schema_mutation()
     > ```
 
-4.  Create a main schema in a new file called schema.py on myproject folder.
+5.  Create a main schema in a new file called schema.py on myproject folder.
     This file can be used to merge all queries and mutations from all apps
     builded with django_graphbox or just add your own queries and mutations.
 
@@ -113,7 +121,7 @@ Use this guide to get started with the GraphBox.
     > schema = graphene.Schema(query=Query, mutation=Mutation)
     > ```
 
-5.  Add the schema on urls.py file.
+6.  Add the schema on urls.py file.
 
     > ```python3
     > from django.urls import path
@@ -126,7 +134,7 @@ Use this guide to get started with the GraphBox.
     > ]
     > ```
 
-6.  Run your project.
+7.  Run your project.
 
     > ```bash
     > $ python manage.py runserver
@@ -156,7 +164,7 @@ API.
     > Note that you can define your fields as you want, and you will be able to
     > configure this fields in the SessionManager.
 
-2.  Configure groups and modify_permissions in [settings.py]{.title-ref} file.
+2.  Configure groups of users based on roles:
 
     > ```python3
     > ACCESS_GROUPS = {
@@ -166,23 +174,9 @@ API.
     > }
     > ```
     >
-    > This groups can be interpreted as: If an operation like
-    > [create_field]{.title-ref} is configured for allow to GROUP_LEVEL_2 then
-    > the user will be able to create a field only if he has the role
-    > RULE_LEVEL_1 or RULE_LEVEL_2.
-    >
-    > ```python3
-    > MODIFY_PERMISSIONS = {
-    >     "ROLE_LEVEL_1": ["ROLE_LEVEL_3", "ROLE_LEVEL_2", "ROLE_LEVEL_1"],
-    >     "ROLE_LEVEL_2": ["ROLE_LEVEL_3", "ROLE_LEVEL_2",],
-    >     "ROLE_LEVEL_3": ["ROLE_LEVEL_1",],
-    > }
-    > ```
-    >
-    > This permissions are related with the operations of the user model used on
-    > SessionManager. A user with the permission ROLE_LEVEL_2 only can create,
-    > update and delete user instances with the permission ROLE_LEVEL_2 and
-    > ROLE_LEVEL_3.
+    > This groups can be interpreted as: If an operation is configured for allow
+    > to GROUP_LEVEL_2 then the user will be able to create a field only if he
+    > has the role RULE_LEVEL_1 or RULE_LEVEL_2.
 
 3.  Create a new instance of the SessionManager on your schema.py file on the
     myapp app and configure the user model.
@@ -192,7 +186,15 @@ API.
     > from myapp.models import User
     > from django.conf import settings
     >
-    > session_manager = SessionManager(User, rol_field_name='role', login_id_field_name='custom_uname', password_field_name='custom_pwd', active_field_name='custom_active', groups=settings.ACCESS_GROUPS, modify_permissions=settings.MODIFY_PERMISSIONS)
+    > session_manager = SessionManager(User)
+    > # You can change the names of default fields like this:
+    > session_manager.config_user_model(active_field_name='custom_active', login_id_field_name='custom_uname', rol_field_name='role')
+    > # You can change the name of the session key and jwt configuration like this:
+    > session_manager.config_session_jwt(persistent_tokens=True, session_key='public-schema', security_key=settings.SECRET_KEY)
+    > # You can change the groups and permissions like this:
+    > session_manager.config_access_groups(ACCESS_GROUPS)
+    > # You can configure Captcha on the session operations like this:
+    > session_manager.config_captcha(use_captcha=True, captcha_style='google_recaptcha_v3', recaptcha_site_key=settings.RECAPTCHA_SITE_KEY, recaptcha_secret_key=settings.RECAPTCHA_SECRET_KEY, max_login_attempts=5, max_captcha_by_user=5, expiration_minutes=5, captcha_length=6)
     > ```
 
 4.  Configure and Build your GraphQL schema with
@@ -258,8 +260,8 @@ API.
 # Custom filters, validators and internal resolvers
 
 Django GraphBox Builder allows you to add custom filters and validators to the
-GraphQL schema. This example assumes that you have two models called
-[User]{.title-ref} and [Favorite]{.title-ref} with the following fields:
+GraphQL schema. This example assumes that you have two models called User and
+Favorite.
 
 > ```python3
 > class User(Model):
@@ -277,8 +279,8 @@ GraphQL schema. This example assumes that you have two models called
 
 1.  You can add external filters for the Favorite query. External filters are
     parameters that will be provided by the client and will be used to filter
-    the query. The filters are added to the [external_filters]{.title-ref}
-    dictionary on the add_model method like this:
+    the query. The filters are added to the external_filters dictionary on the
+    add_model method like this:
 
     > ```python3
     > builder.add_model(
@@ -295,15 +297,19 @@ GraphQL schema. This example assumes that you have two models called
 
 2.  You can add internal filters for the Favorite query. Internal filters are
     callables that will be resolved on the query execution with the parameters
-    of the query resolver. The filters are added to the
-    [internal_filters]{.title-ref} dictionary on the add_model method like this:
+    of the query resolver.
 
     > ```python3
+    > def filter_resolver(info, **kwargs):
+    >     # Write your custom filter based on the info, and kwargs parameters and return the value expected for field_name.
+    >     logged, actual_user = session_manager.validate_access(info.context, "GROUP_LEVEL_1") # You can use the session_manager methods to validate the get data of the actual user
+    >     return actual_user.id
+    >
     > builder.add_model(
     >     Favorite,
     >     internal_filters={
     >         "field_name": "user__id", # The field name on the Favorite model
-    >         "resolver_filter": session_manager.actual_user_attr_getter(field_name='id'), # This function of session_manager will return a function that return the id of the actual user
+    >         "resolver_filter": filter_resolver, # The callable resolver that will be executed on the query execution
     >         "on_return_none": "skip", # If the function returns None, the filter will be skipped. If you want apply the filter like user__id__is_null=True, you can set this parameter to "set__isnull".
     >     }
     > )
@@ -312,19 +318,34 @@ GraphQL schema. This example assumes that you have two models called
     > This will build the query allFavorite filtered by the actual user.
 
 3.  Build operations with custom validators by operation for a customizable
-    workflow. The validators callables need receive [info]{.title-ref},
-    [model_instance]{.title-ref}, [\*\*kwargs]{.title-ref} and must return a
-    boolean.
+    workflow. The validators callables need receive info, model_instance,
+    \*\*kwargs and must return a boolean.
 
     > ```python3
+    > def custom_validator_1(info, model_instance, **kwargs):
+    >     # Write your custom validator based on the info, model_instance and kwargs parameters and return a boolean.
+    >     logged, actual_user = session_manager.validate_access(info.context, "GROUP_LEVEL_1") # You can use the session_manager methods to validate the get data of the actual user
+    >     return actual_user.id == model_instance.user.id
+    >
+    > def custom_validator_2(info, model_instance, **kwargs):
+    >     # Write your custom validator based on the info, model_instance and kwargs parameters and return a boolean.
+    >     return model_instance.book_year > 2000
+    >
     > builder.add_model(
     >     Favorite,
     >     validators_by_operation={
     >         'create_field': {
-    >             'validators':(
-    >                 session_manager.actual_user_comparer(actual_user_field='id', operator='=', model_field='user__id'), # This function of session_manager will return a function that compare the id of the actual user with the id of the user field of the Favorite model
-    >                 session_manager.actual_user_comparer(actual_user_field='role', operator='=', default_value='ROLE_LEVEL_1'), # This function of session_manager will return a function that compare the role of the actual user with the default value
-    >             ),
+    >             'validators':[
+    >                 custom_validator_1, # This function will validate if the actual user is the owner of the Favorite instance on the create operation
+    >                 custom_validator_2, # This function will validate if the book_year is greater than 2000 on the create operation
+    >                 { # You can use a dict to create a complex validator
+    >                     'validators':[
+    >                         custom_validator_1, # This function will validate if the actual user is the owner of the Favorite instance on the create operation
+    >                         custom_validator_2, # This function will validate if the book_year is greater than 2000 on the create operation
+    >                     ],
+    >                     'connector': 'AND', # The connector between the validators. If you want to use OR, you can set this parameter to 'OR'.
+    >             }
+    >             ],
     >             'connector': 'OR', # The connector between the validators. If you want to use AND, you can set this parameter to 'AND'.
     >         },
     >     }
@@ -335,8 +356,8 @@ GraphQL schema. This example assumes that you have two models called
 
 4.  Build operations with internal resolvers for some fields of the model. For
     example to set the actual user as the owner of the Favorite. The resolver
-    callables need receive [info]{.title-ref}, [model_instance]{.title-ref},
-    [\*\*kwargs]{.title-ref} and must return a value as the model field type.
+    callables need receive info, model_instance, \*\*kwargs and must return the
+    value expected for the field.
 
     > ```python3
     > builder.add_model(
@@ -487,3 +508,4 @@ Some of the extra features are:
 > - Version 1.2.9 Fix bug on Django auditor logs integration.
 > - Version 1.2.10 Fix ordering field and callbacks on delete operation.
 > - Version 1.3 Add captcha controls in session operations and persistent tokens
+> - Version 1.4.1

@@ -689,7 +689,7 @@ class Manager:
         )
         failed_login_attempt.save()
 
-    def _is_captcha_required(self, user_instance):
+    def _is_captcha_required(self, user_instance=None):
         """Validate if captcha is required
 
         Args:
@@ -699,11 +699,17 @@ class Manager:
         """
         if self.use_captcha:
             before_one_hour = tz.localtime() - datetime.timedelta(hours=1)
-            failed_login_attempts = FailedLoginAttempt.objects.filter(
-                user_id=user_instance.id,
-                session_key=self.session_key,
-                timestamp__gte=before_one_hour,
-            ).count()
+            if user_instance != None:
+                failed_login_attempts = FailedLoginAttempt.objects.filter(
+                    user_id=user_instance.id,
+                    session_key=self.session_key,
+                    timestamp__gte=before_one_hour,
+                ).count()
+            else:
+                failed_login_attempts = FailedLoginAttempt.objects.filter(
+                    session_key=self.session_key,
+                    timestamp__gte=before_one_hour,
+                ).count()
             if failed_login_attempts >= self.max_login_attempts:
                 return True
         return False
@@ -730,20 +736,30 @@ class Manager:
         """
         self._update_captcha_status()
         if captcha_id != None and captcha_value != None:
-            if (
-                LoginCaptcha.objects.all()
-                .filter(
-                    captcha_id=captcha_id,
-                    captcha_value=captcha_value,
-                    active=True,
-                    session_key=self.session_key,
-                    user_id=user_instance.id,
+            if user_instance != None:
+                return (
+                    LoginCaptcha.objects.all()
+                    .filter(
+                        captcha_id=captcha_id,
+                        captcha_value=captcha_value,
+                        active=True,
+                        session_key=self.session_key,
+                        user_id=user_instance.id,
+                    )
+                    .exists()
                 )
-                .exists()
-            ):
-                return True
             else:
-                return False
+                return (
+                    LoginCaptcha.objects.all()
+                    .filter(
+                        captcha_id=captcha_id,
+                        captcha_value=captcha_value,
+                        active=True,
+                        session_key=self.session_key,
+                        user_id__isnull=True,
+                    )
+                    .exists()
+                )
         else:
             return False
 
@@ -767,7 +783,11 @@ class Manager:
             return False
 
     def _validate_captcha(
-        self, user_instance, captcha_id=None, captcha_value=None, recaptcha_token=None
+        self,
+        user_instance=None,
+        captcha_id=None,
+        captcha_value=None,
+        recaptcha_token=None,
     ):
         """Validate captcha
 
@@ -778,8 +798,8 @@ class Manager:
         Returns:
             bool: True if captcha is valid
         """
-        if self._is_captcha_required(user_instance):
-            if self.use_captcha:
+        if self.use_captcha:
+            if self._is_captcha_required(user_instance=user_instance):
                 if callable(self.captcha_style):
                     captcha_style = self.captcha_style()
                 else:
@@ -817,13 +837,13 @@ class Manager:
                 valid, user_instance = self._auth_with_moodle(login_id_value, password)
                 if not valid:
                     valid, user_instance = self._auth_native(login_id_value, password)
-                if valid:
-                    if self._validate_captcha(
-                        user_instance,
-                        captcha_id=captcha_id,
-                        captcha_value=captcha_value,
-                        recaptcha_token=recaptcha_token,
-                    ):
+                if self._validate_captcha(
+                    user_instance=user_instance,
+                    captcha_id=captcha_id,
+                    captcha_value=captcha_value,
+                    recaptcha_token=recaptcha_token,
+                ):
+                    if valid:
                         token = self._generate_token(
                             user_instance,
                             0 if permanent else self.session_expiration_time,
@@ -836,25 +856,24 @@ class Manager:
                             False,
                         )
                     else:
+                        captcha_required = self._is_captcha_required(
+                            user_instance=user_instance
+                        )
                         return (
                             False,
                             None,
                             "",
-                            ErrorManager.get_error_by_code(INVALID_CAPTCHA),
-                            True,
+                            ErrorManager.get_error_by_code(INVALID_CREDENTIALS),
+                            captcha_required,
                         )
                 else:
-                    captcha_required = False
-                    if user_instance != None:
-                        captcha_required = self._is_captcha_required(user_instance)
                     return (
                         False,
                         None,
                         "",
-                        ErrorManager.get_error_by_code(INVALID_CREDENTIALS),
-                        captcha_required,
+                        ErrorManager.get_error_by_code(INVALID_CAPTCHA),
+                        True,
                     )
-
             except:
                 return (
                     False,
@@ -895,27 +914,34 @@ class Manager:
             user_instance = self.user_model.objects.filter(
                 **{self.login_id_field_name: login_id_value}
             ).first()
-            if user_instance != None and self._is_captcha_required(user_instance):
+            if self._is_captcha_required(user_instance=user_instance):
                 self._update_captcha_status()
                 before_one_hour = tz.localtime() - datetime.timedelta(hours=1)
-                cantidad_captchas = LoginCaptcha.objects.filter(
-                    user_id=user_instance.id,
-                    session_key=self.session_key,
-                    creation_time__gte=before_one_hour,
-                ).count()
+                if user_instance != None:
+                    cantidad_captchas = LoginCaptcha.objects.filter(
+                        user_id=user_instance.id,
+                        session_key=self.session_key,
+                        creation_time__gte=before_one_hour,
+                    ).count()
+                else:
+                    cantidad_captchas = LoginCaptcha.objects.filter(
+                        session_key=self.session_key,
+                        creation_time__gte=before_one_hour,
+                    ).count()
                 if cantidad_captchas < self.max_captcha_by_user:
                     captcha_id = str(uuid4())
                     captcha_value = self._random_captcha_value()
+                    user_id = None
+                    if user_instance != None:
+                        user_id = user_instance.id
                     login_captcha = LoginCaptcha(
                         captcha_id=captcha_id,
                         captcha_value=captcha_value,
                         session_key=self.session_key,
-                        user_id=user_instance.id,
+                        user_id=user_id,
                     )
                     login_captcha.save()
                     return captcha_id
-                else:
-                    return None
         return None
 
     def download_photo(self, url):
