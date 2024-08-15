@@ -386,6 +386,104 @@ class Manager:
         self.expiration_minutes = expiration_minutes
         self.captcha_length = captcha_length
 
+    def config_middleware_path(self, middleware_path):
+        self.middleware_path = middleware_path
+
+    def preprocess_user_data(self, request):
+        if "Authorization" in request.headers:
+            token = request.headers["Authorization"]
+            token = token[7 : len(token)]
+            try:
+                if callable(self._security_key):
+                    security_key = self._security_key(token=token)
+                else:
+                    security_key = self._security_key
+                payload = jwt.decode(token, security_key, algorithms=["HS256"])
+                if (
+                    not self.persistent_tokens
+                    or JsonWebToken.objects.filter(
+                        token=token,
+                        active=True,
+                        session_key=self.session_key,
+                        user_id=payload["u_id"],
+                    ).exists()
+                ):
+                    if (
+                        self.session_key == None
+                        or self.session_key == payload["session_key"]
+                    ):
+                        if self.user_model.objects.filter(id=payload["u_id"]).exists():
+                            user_instance = self.user_model.objects.get(
+                                id=payload["u_id"]
+                            )
+                            if self.active_field_name == None or getattr(
+                                user_instance, self.active_field_name
+                            ):
+                                # import django_auditor_logs if exists
+                                if "django_auditor_logs" in settings.INSTALLED_APPS:
+                                    try:
+                                        from django_auditor_logs.metadata import (
+                                            MetadataManager,
+                                        )
+
+                                        user_metadata = {}
+                                        for field in user_instance._meta.get_fields():
+                                            try:
+                                                if not field.is_relation:
+                                                    if (
+                                                        field.name
+                                                        != self.password_field_name
+                                                    ):
+                                                        user_metadata[field.name] = str(
+                                                            getattr(
+                                                                user_instance,
+                                                                field.name,
+                                                            )
+                                                        )
+                                                else:
+                                                    user_metadata[
+                                                        field.name + "_id"
+                                                    ] = str(
+                                                        getattr(
+                                                            user_instance,
+                                                            field.name,
+                                                        ).id
+                                                    )
+                                            except:
+                                                pass
+                                        MetadataManager.set_user_metadata(user_metadata)
+                                    except Exception as e:
+                                        print(e)
+                                return (
+                                    True,
+                                    user_instance,
+                                    ErrorManager.get_error_by_code(NO_ERROR),
+                                )
+                            else:
+                                return (
+                                    False,
+                                    None,
+                                    ErrorManager.get_error_by_code(ACCESS_DENIED),
+                                )
+                        else:
+                            return (
+                                False,
+                                None,
+                                ErrorManager.get_error_by_code(INVALID_CREDENTIALS),
+                            )
+                    else:
+                        return (
+                            False,
+                            None,
+                            ErrorManager.get_error_by_code(INVALID_TOKEN),
+                        )
+                else:
+                    return False, None, ErrorManager.get_error_by_code(INVALID_TOKEN)
+            except:
+                return False, None, ErrorManager.get_error_by_code(INVALID_TOKEN)
+        else:
+            return False, None, ErrorManager.get_error_by_code(INVALID_TOKEN)
+
     def validate_access(self, request, group_name):
         """Validate access
 
@@ -395,6 +493,16 @@ class Manager:
         Returns:
             tuple:(status (bool), user_instance (UserObject))
         """
+        if hasattr(request, "graphbox_auth_info"):
+            if request.graphbox_auth_info["valid"]:
+                user_instance = request.graphbox_auth_info["user_instance"]
+                estado = self.group_manager.validar_acesso(user_instance, group_name)
+                if estado:
+                    return True, user_instance, ErrorManager.get_error_by_code(NO_ERROR)
+                else:
+                    return False, None, ErrorManager.get_error_by_code(ACCESS_DENIED)
+            else:
+                return False, None, request.graphbox_auth_info["session_error"]
         if group_name == "open" or group_name == None:
             return True, None, ErrorManager.get_error_by_code(NO_ERROR)
         if "Authorization" in request.headers:

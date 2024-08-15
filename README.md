@@ -510,3 +510,4 @@ Some of the extra features are:
 > - Version 1.3 Add captcha controls in session operations and persistent tokens
 > - Version 1.4.1 Fix bugs
 > - Version 1.4.2 Add support for callable security key on session manager
+> - Version 1.5.0 Implement Session Middleware for access control optimization

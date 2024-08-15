@@ -12,12 +12,13 @@ from .constants import *
 from .helpers.mutations import *
 from .helpers.queries import *
 from .helpers.sessions import *
+from .helpers.middlewares import MiddlewareSessionCollector
 
 
 class SchemaBuilder:
     """Class provides the functionality to build a GraphQL schema with basic operations: field_by_id, list_field, create_field, update_field and delete_field."""
 
-    def __init__(self, session_manager=None):
+    def __init__(self, session_manager=None, schema_path=None):
         """Initialize the schema builder.
 
         Args:
@@ -26,6 +27,13 @@ class SchemaBuilder:
         self._models_config = {}
         self._models_by_op_name = {}
         self._session_manager = session_manager
+        self._schema_path = schema_path
+        if self._schema_path != None:
+            if self._schema_path.startswith("/"):
+                self._schema_path = self._schema_path[1:]
+            if not self._schema_path.endswith("/"):
+                self._schema_path += "/"
+            MiddlewareSessionCollector.register(session_manager, self._schema_path)
 
     def add_model(
         self,
@@ -194,9 +202,9 @@ class SchemaBuilder:
                     f"create_{model_config['name'].lower()}",
                     create_mutation.Field(),
                 )
-                self._models_by_op_name[
-                    "create" + model_config["name"].lower()
-                ] = model_config
+                self._models_by_op_name["create" + model_config["name"].lower()] = (
+                    model_config
+                )
             # create the update mutation
             if "update_field" in model_config["operations_to_build"]:
                 mutate_update_function = build_mutate_for_update(self)
@@ -226,9 +234,9 @@ class SchemaBuilder:
                     f"update_{model_config['name'].lower()}",
                     update_mutation.Field(),
                 )
-                self._models_by_op_name[
-                    "update" + model_config["name"].lower()
-                ] = model_config
+                self._models_by_op_name["update" + model_config["name"].lower()] = (
+                    model_config
+                )
             # create the delete mutation
             if "delete_field" in model_config["operations_to_build"]:
                 mutate_delete_function = build_mutate_for_delete(self)
@@ -249,9 +257,9 @@ class SchemaBuilder:
                     f"delete_{model_config['name'].lower()}",
                     delete_mutation.Field(),
                 )
-                self._models_by_op_name[
-                    "delete" + model_config["name"].lower()
-                ] = model_config
+                self._models_by_op_name["delete" + model_config["name"].lower()] = (
+                    model_config
+                )
         return mutation_class
 
     def build_session_schema(self):
