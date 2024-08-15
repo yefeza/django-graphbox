@@ -493,6 +493,8 @@ class Manager:
         Returns:
             tuple:(status (bool), user_instance (UserObject))
         """
+        if group_name == "open" or group_name == None:
+            return True, None, ErrorManager.get_error_by_code(NO_ERROR)
         if hasattr(request, "graphbox_auth_info"):
             if request.graphbox_auth_info["valid"]:
                 user_instance = request.graphbox_auth_info["user_instance"]
@@ -503,8 +505,6 @@ class Manager:
                     return False, None, ErrorManager.get_error_by_code(ACCESS_DENIED)
             else:
                 return False, None, request.graphbox_auth_info["session_error"]
-        if group_name == "open" or group_name == None:
-            return True, None, ErrorManager.get_error_by_code(NO_ERROR)
         if "Authorization" in request.headers:
             token = request.headers["Authorization"]
             token = token[7 : len(token)]
