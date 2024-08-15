@@ -508,4 +508,5 @@ Some of the extra features are:
 > - Version 1.2.9 Fix bug on Django auditor logs integration.
 > - Version 1.2.10 Fix ordering field and callbacks on delete operation.
 > - Version 1.3 Add captcha controls in session operations and persistent tokens
-> - Version 1.4.1
+> - Version 1.4.1 Fix bugs
+> - Version 1.4.2 Add support for callable security key on session manager
