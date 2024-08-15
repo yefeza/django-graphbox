@@ -1,4 +1,5 @@
 """ Error responses for GraphBox API """
+
 from graphene_django.types import ObjectType
 import graphene
 from .constants import *
@@ -17,7 +18,7 @@ class ErrorManager:
 
     _error_list = {
         NO_ERROR: {
-            "message": "Operación ejeccutada correctamente",
+            "message": "Operación ejecutada correctamente",
             "description": "No ha ocurrido ningún error",
         },
         UNKNOWN_ERROR: {

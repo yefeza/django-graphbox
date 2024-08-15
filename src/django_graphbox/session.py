@@ -1,5 +1,6 @@
 """ This module implements a Session Manager JWT based, that can be used on SchemaBuilder for authentication.
 """
+
 # jwt
 import jwt
 
@@ -277,8 +278,12 @@ class Manager:
             raise Exception("session_key must be string")
         if type(session_expiration_time) != int:
             raise Exception("session_expiration_time must be int")
-        if security_key != None and type(security_key) != str:
-            raise Exception("security_key must be string")
+        if (
+            security_key != None
+            and type(security_key) != str
+            and not callable(security_key)
+        ):
+            raise Exception("security_key must be string or function")
         if type(persistent_tokens) != bool:
             raise Exception("persistent_tokens must be boolean")
         # Configuracion de la sesión JWT
@@ -396,7 +401,11 @@ class Manager:
             token = request.headers["Authorization"]
             token = token[7 : len(token)]
             try:
-                payload = jwt.decode(token, self._security_key, algorithms=["HS256"])
+                if callable(self._security_key):
+                    security_key = self._security_key(token=token)
+                else:
+                    security_key = self._security_key
+                payload = jwt.decode(token, security_key, algorithms=["HS256"])
                 if (
                     not self.persistent_tokens
                     or JsonWebToken.objects.filter(
@@ -530,7 +539,11 @@ class Manager:
                 payload["exp"] = tz.localtime() + datetime.timedelta(
                     hours=expiration_time
                 )
-            token = jwt.encode(payload, self._security_key, algorithm="HS256")
+            if callable(self._security_key):
+                security_key = self._security_key(user_instance=user_instance)
+            else:
+                security_key = self._security_key
+            token = jwt.encode(payload, security_key, algorithm="HS256")
             if self.persistent_tokens:
                 request_metadata = self._get_request_metadata()
                 persistent_data = JsonWebToken(
