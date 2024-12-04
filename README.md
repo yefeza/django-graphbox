@@ -1,5 +1,4 @@
 # About Django GraphBox
-# ramon
 Django GraphBox is a package for easy building GraphQL APIs with Django. This
 package is based on Graphene and Graphene-Django.
 
