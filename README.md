@@ -1,4 +1,5 @@
 # About Django GraphBox
+
 Django GraphBox is a package for easy building GraphQL APIs with Django. This
 package is based on Graphene and Graphene-Django.
 
@@ -515,3 +516,6 @@ Some of the extra features are:
 > - Version 1.5.3 Add support for custom arguments by operation
 > - Version 1.5.4 Fix bugs
 > - Version 1.5.5 Fix bug on kwargs of the callbacks
+> - Version 1.5.6 Fix bugs
+> - Version 1.5.7 Upgrade django supported version to 5.2 and make facebook and
+>   google libraries optional dependencies

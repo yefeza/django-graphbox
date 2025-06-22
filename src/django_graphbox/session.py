@@ -1,5 +1,4 @@
-""" This module implements a Session Manager JWT based, that can be used on SchemaBuilder for authentication.
-"""
+"""This module implements a Session Manager JWT based, that can be used on SchemaBuilder for authentication."""
 
 # jwt
 import jwt
@@ -23,14 +22,6 @@ from .exceptions import ErrorManager
 # global constants
 from .constants import *
 
-# google imports
-from google.oauth2 import id_token
-from google.auth.transport import requests as grq
-import google.oauth2.credentials
-from google.auth.transport.requests import AuthorizedSession
-
-# facebook imports
-import facebook
 
 # files manage
 from django.core.files.images import ImageFile
@@ -104,6 +95,16 @@ class GoogleSession:
     @classmethod
     def validate(cls, token):
         try:
+            # google imports
+            from google.oauth2 import id_token
+            from google.auth.transport import requests as grq
+            import google.oauth2.credentials
+            from google.auth.transport.requests import AuthorizedSession
+        except ImportError:
+            raise ImportError(
+                "Google OAuth2 dependencies are not installed. Please install 'google-auth'."
+            )
+        try:
             credentials = google.oauth2.credentials.Credentials(token)
             authed_session = AuthorizedSession(credentials)
             open_id_configuration = requests.get(
@@ -128,6 +129,13 @@ class FacebookSession:
 
     @classmethod
     def validate(cls, token):
+        try:
+            # facebook imports
+            import facebook
+        except ImportError:
+            raise ImportError(
+                "Facebook Graph API dependencies are not installed. Please install 'facebook-sdk'."
+            )
         try:
             graph = facebook.GraphAPI(access_token=token, version="3.1")
             info = graph.get_object("me", fields="id,email,name,picture")
