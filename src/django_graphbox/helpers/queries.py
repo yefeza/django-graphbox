@@ -126,6 +126,9 @@ def build_field_list_resolver(self):
             valid = True
         if valid:
             model = config.get("model")
+            custom_ordering_fields = kwargs.get("custom_ordering_fields")
+            if custom_ordering_fields != None:
+                ordering_field = convert_custom_ordering_fields(custom_ordering_fields)
             if pagination_length == 0:
                 if type(ordering_field) in [list, tuple]:
                     result = model.objects.filter(query_object).order_by(
@@ -141,6 +144,11 @@ def build_field_list_resolver(self):
                 return result
             else:
                 pagina = kwargs.get("page")
+                page_length = kwargs.get("page_length")
+                if page_length is not None:
+                    if page_length <= 0:
+                        raise Exception("pageLength must be greater than 0")
+                    pagination_length = page_length
                 inicio = (pagina * pagination_length) - pagination_length
                 fin = inicio + pagination_length
                 if type(ordering_field) in [list, tuple]:
@@ -190,8 +198,10 @@ def get_filters_args(model_config):
         if "list_field" in custom_args_by_operation:
             for custom_arg in custom_args_by_operation["list_field"]:
                 filters_args[custom_arg["name"]] = custom_arg["type"]
-    if model_config.get("pagination_length") != 0:
+    filters_args["custom_ordering_fields"] = graphene.List(graphene.String)
+    if model_config.get("pagination_length") > 0:
         filters_args["page"] = graphene.Int(required=True)
+        filters_args["page_length"] = graphene.Int()
     return filters_args
 
 
