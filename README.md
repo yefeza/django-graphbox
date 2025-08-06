@@ -519,3 +519,5 @@ Some of the extra features are:
 > - Version 1.5.6 Fix bugs
 > - Version 1.5.7 Upgrade django supported version to 5.2 and make facebook and
 >   google libraries optional dependencies
+> - Version 1.5.8 Fix bugs
+> - Version 1.5.9 Fix hasher seek file on sha1 generation

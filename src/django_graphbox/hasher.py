@@ -1,21 +1,24 @@
 import hashlib
 
+
 class HashManager:
-    """ Hash manager class """
+    """Hash manager class"""
+
     @classmethod
     def getSHA1file(cls, file):
-        """ Get SHA1 hash of file 
-        
+        """Get SHA1 hash of file
+
         Args:
             file (File): File to hash
 
         Returns:
             str: SHA1 hash of file
         """
+        file.seek(0)
         BLOCKSIZE = 65536
         hasher = hashlib.sha1()
         buf = file.read(BLOCKSIZE)
         while len(buf) > 0:
             hasher.update(buf)
             buf = file.read(BLOCKSIZE)
-        return (hasher.hexdigest())
+        return hasher.hexdigest()
