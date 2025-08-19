@@ -24,6 +24,9 @@ from PIL import Image
 # logging
 import logging
 
+# json encoding
+import json
+
 # Arguments class Builders
 
 
@@ -202,6 +205,13 @@ def build_mutate_for_create(self):
                             getattr(instance, key).save(
                                 f"{sha1_file}.{extension}", file, save=False
                             )
+                        elif field_type == "JSONField" and isinstance(value, str):
+                            try:
+                                value = json.loads(value)
+                            except:
+                                raise Exception(
+                                    f"{value} no es un JSON válido para {key}"
+                                )
                         elif key in config.get("save_as_password"):
                             value = make_password(value)
                             setattr(instance, key, value)
@@ -360,6 +370,16 @@ def build_mutate_for_update(self):
                                         getattr(instance, key).save(
                                             f"{sha1_file}.{extension}", file, save=False
                                         )
+                                    elif field_type == "JSONField" and isinstance(
+                                        value, str
+                                    ):
+                                        try:
+                                            value = json.loads(value)
+                                        except:
+                                            raise Exception(
+                                                f"{value} no es un JSON válido para {key}"
+                                            )
+                                    # check if field is a password field
                                     elif key in config.get("save_as_password"):
                                         value = make_password(value)
                                         setattr(instance, key, value)

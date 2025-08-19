@@ -521,3 +521,4 @@ Some of the extra features are:
 >   google libraries optional dependencies
 > - Version 1.5.8 Fix bugs
 > - Version 1.5.9 Fix hasher seek file on sha1 generation
+> - Version 1.5.10 Add support for JSONField on mutations
