@@ -1,5 +1,5 @@
 setuptools==62.3.2
-django>=2.2.1,<=5.2.3
+django>=2.2.1
 graphene-django>=2.15.0
 pyjwt>=2.3.0
 urllib3>=1.26.9
