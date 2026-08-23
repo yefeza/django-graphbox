@@ -409,3 +409,10 @@ class SchemaBuilder:
             return query_class, mutation_class
         else:
             assert False, "Session Manager not defined"
+
+    def get_type_for_model(self, model):
+        """Get the type for a model registered in the schema builder."""
+        model_name = model.__name__
+        if self._models_config.get(model_name) is not None:
+            return self._models_config[model_name].get("type")
+        return None
