@@ -522,3 +522,5 @@ Some of the extra features are:
 > - Version 1.5.8 Fix bugs
 > - Version 1.5.9 Fix hasher seek file on sha1 generation
 > - Version 1.5.10 Add support for JSONField on mutations
+> - Version 1.5.13 Add support for retrieving type reference for model
+> - Version 1.5.14 Add support for white-listed fields in types

@@ -38,7 +38,8 @@ class SchemaBuilder:
     def add_model(
         self,
         model,
-        exclude_fields=(),
+        exclude_fields=[],
+        white_listed_fields=[],
         pagination_length=0,
         pagination_style="infinite",
         external_filters=[],
@@ -68,6 +69,7 @@ class SchemaBuilder:
         Args:
             model (django.models.Model): Model to add to the schema.
             exclude_fields (tuple or list): Fields to exclude from the model type.
+            white_listed_fields (list): List of fields to include in the model type. If empty, all fields are included.
             pagination_length (int): Number of items to return in a paginated response. 0 means no pagination.
             pagination_style (str): Pagination style. Possible values are 'infinite' and 'paginated'.
             external_filters (list): Filters to apply to the model. Each filter is a dictionary with the following keys: 'field_name', 'param_name', 'param_type'.
@@ -87,9 +89,16 @@ class SchemaBuilder:
         # get the model name
         model_name = model.__name__
         # crreate the model type
-        model_metaclass = type(
-            f"Meta", (), {"model": model, "exclude_fields": exclude_fields}
-        )
+        type_base_meta = {"model": model}
+        if white_listed_fields and exclude_fields:
+            raise ValueError(
+                "Cannot specify both white_listed_fields and exclude_fields."
+            )
+        if white_listed_fields:
+            type_base_meta["fields"] = white_listed_fields
+        elif exclude_fields:
+            type_base_meta["exclude_fields"] = exclude_fields
+        model_metaclass = type(f"Meta", (), type_base_meta)
         type_attrs = {"Meta": model_metaclass}
         for attr in custom_attrs_for_type:
             type_attrs[attr["name"]] = attr["value"]
